@@ -37,7 +37,7 @@ module tt_um_tic_tac_toe (
     //end
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0, operation, uio, ui, uo};
+  wire _unused = &{ena, clk, rst_n, 1'b0, operation};
 
 endmodule
 
