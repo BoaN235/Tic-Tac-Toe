@@ -14,7 +14,7 @@ module tt_um_tic_tac_toe (
     input  wire       clk,      // clock
     input  wire       rst_n,     // reset_n - low to reset
     input  wire [7:0] ui_in,    // Dedicated inputs
-    output wire [8:0] uo_out,   // Dedicated outputs
+    output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
     output wire [7:0] uio_out,  // IOs: Output path
     output wire [7:0] uio_oe   // IOs: Enable path (active high: 0=input, 1=output)
@@ -47,7 +47,7 @@ endmodule
 module add (
     input  wire [7:0] a_in,    // Dedicated inputs
     input  wire [7:0] b_in,
-    output wire [8:0] out
+    output wire [7:0] out
     );
 
     wire [7:0] carry;
@@ -59,14 +59,14 @@ module add (
     add_operation digit_6 (a_in [5], b_in [5], carry[4], out [5], carry[5]);
     add_operation digit_7 (a_in [6], b_in [6], carry[5], out [6], carry[6]);
     add_operation digit_8 (a_in [7], b_in [7], carry[6], out [7], carry[7]);
-    assign out [8] = carry [7];
+    //assign out [8] = carry [7];
 
 endmodule
 
 module subtract (
     input  wire [7:0] a_in,    // Dedicated inputs
     input  wire [7:0] b_in,
-    output wire [8:0] out
+    output wire [7:0] out
     );
 
     // Twos compliment of B
