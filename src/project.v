@@ -13,8 +13,8 @@ module tt_um_tic_tac_toe (
     input  wire       ena,      // always 1 when the design is powered, so you can ignore it
     input  wire       clk,      // clock
     input  wire       rst_n,     // reset_n - low to reset
-    input wire [0:7] uio
-    input wire [0:7] ui
+    input wire [0:7] uio,
+    input wire [0:7] ui,
     output wire [0:7] uo
 );
 
@@ -35,7 +35,7 @@ module tt_um_tic_tac_toe (
     //end
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0, operation};
+  wire _unused = &{ena, clk, rst_n, 1'b0, operation, uio, ui, uo};
 
 endmodule
 
