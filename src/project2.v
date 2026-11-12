@@ -22,11 +22,10 @@ module tt_um_tic_tac_toe (
 
     always @(*) begin
         case (uio_in[1:0])
-            2'b00: out =  ui_in[4:0] + ui_in[7:5]
-            2'b01: out =  ui_in[4:0] - ui_in[7:5]
+            2'b00: uo_out = ui_in[4:0] + ui_in[7:5];
+            2'b01: uo_out = ui_in[4:0] - ui_in[7:5];
         endcase
     end
-
   // List all unused inputs to prevent warnings
   assign uio_out = 8'b00000000;
   assign uio_oe  = 8'b00000000;
