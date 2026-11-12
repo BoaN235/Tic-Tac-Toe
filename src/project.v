@@ -15,24 +15,24 @@ module top_module (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-    wire [8:0] add_out; // Adjust bit-width to match your signals
-    wire [8:0] sub_out;
+    //wire [8:0] add_out; // Adjust bit-width to match your signals
+    //wire [8:0] sub_out;
 
     // Instantiate both hardware modules permanently
-    add add_num (a_in, b_in, add_out);
-    subtract sub_num (a_in, b_in, sub_out);
+    add add_num (a_in, b_in, out);
+    //subtract sub_num (a_in, b_in, sub_out);
 
     // Select the desired result
-    always @(*) begin
-        if (operation == 2'b00) begin
-            out = add_out;
-        end else begin
-            out = sub_out;
-        end
-    end
+    //always @(*) begin
+    //    if (operation == 2'b00) begin
+    //        out = add_out;
+    //    end else begin
+    //        out = sub_out;
+    //    end
+    //end
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  wire _unused = &{ena, clk, rst_n, 1'b0, operation};
 
 endmodule
 
@@ -43,7 +43,7 @@ module add (
     output wire [8:0] out
     );
 
-    wire [6:0] carry;
+    wire [7:0] carry;
     add_operation digit_1 (a_in [0], b_in [0], 1'b0, out [0], carry[0]);
     add_operation digit_2 (a_in [1], b_in [1], carry[0], out [1], carry[1]);
     add_operation digit_3 (a_in [2], b_in [2], carry[1], out [2], carry[2]);
@@ -63,20 +63,21 @@ module subtract (
     );
 
     // Twos compliment of B
-    assign b_in = (~b_in);
-    add twos_compliment (b_in, 8'b00000001, b_in);
+   // wire i_b = (~b_in);
+    //wire t_b [8:0];
+    //add twos_compliment (t_b);
 
     // add A and negative B
-    wire added [8:0];
-    add add_negative (a_in, b_in, added);
+    //wire added [8:0];
+    //add add_negative (a_in, t_b, added);
 
     // check if the output is postive or twos compliment form
-    if (added [8] == 1'b0) begin
-        assign added = (~added);
-        add twos_compliment (added, 8'b00000001, out);
-    end else begin
-        assign out = added;
-    end
+    //if (added [8] == 1'b0) begin
+    //    assign added = (~added);
+    //    add twos_compliment (added, 8'b00000001, out);
+   // end else begin
+    //    assign out = added;
+    //end
 
 endmodule
 
