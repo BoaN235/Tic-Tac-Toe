@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-module top_module (
+module tt_um_tic_tac_toe (
     input  wire [7:0] a_in,    // Dedicated inputs
     input  wire [7:0] b_in, 
     output wire [8:0] out,   // Dedicated outputs
