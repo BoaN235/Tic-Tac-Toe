@@ -14,10 +14,10 @@ module tt_um_tic_tac_toe (
     input  wire       clk,      // clock
     input  wire       rst_n,     // reset_n - low to reset
     input  wire [7:0] ui_in,    // Dedicated inputs
-    output wire [7:0] uo_out,   // Dedicated outputs
+    output wire [8:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
     output wire [7:0] uio_out,  // IOs: Output path
-    output wire [7:0] uio_oe,   // IOs: Enable path (active high: 0=input, 1=output)
+    output wire [7:0] uio_oe   // IOs: Enable path (active high: 0=input, 1=output)
 );
 
     //wire [8:0] add_out; // Adjust bit-width to match your signals
@@ -37,6 +37,8 @@ module tt_um_tic_tac_toe (
     //end
 
   // List all unused inputs to prevent warnings
+  assign uio_out = 8'b00000000;
+  assign uio_oe  = 8'b00000000;
   wire _unused = &{ena, clk, rst_n, 1'b0};
 
 endmodule
