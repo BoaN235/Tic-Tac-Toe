@@ -6,10 +6,10 @@
 `default_nettype none
 
 module tt_um_tic_tac_toe (
-    input  wire [7:0] a_in,    // Dedicated inputs
-    input  wire [7:0] b_in, 
-    output wire [8:0] out,   // Dedicated outputs
-    input  wire [2:0] operation,
+    //input  wire [7:0] a_in,    // Dedicated inputs
+    //input  wire [7:0] b_in, 
+    //output wire [8:0] out,   // Dedicated outputs
+    //input  wire [2:0] operation,
     input  wire       ena,      // always 1 when the design is powered, so you can ignore it
     input  wire       clk,      // clock
     input  wire       rst_n,     // reset_n - low to reset
@@ -24,7 +24,7 @@ module tt_um_tic_tac_toe (
     //wire [8:0] sub_out;
 
     // Instantiate both hardware modules permanently
-    add add_num (a_in, b_in, out);
+    add add_num (ui_in, uio_in, uo_out);
     //subtract sub_num (a_in, b_in, sub_out);
 
     // Select the desired result
@@ -37,7 +37,7 @@ module tt_um_tic_tac_toe (
     //end
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0, operation};
+  wire _unused = &{ena, clk, rst_n, 1'b0};
 
 endmodule
 
