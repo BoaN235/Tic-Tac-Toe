@@ -20,7 +20,7 @@ module tt_um_tic_tac_toe (
     output wire [7:0] uio_oe   // IOs: Enable path (active high: 0=input, 1=output)
 );
 
-    //wire [8:0] add_out; // Adjust bit-width to match your signals
+    wire [8:0] add_out; // Adjust bit-width to match your signals
     //wire [8:0] sub_out;
 
     // Instantiate both hardware modules permanently
