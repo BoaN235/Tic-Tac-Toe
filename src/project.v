@@ -12,7 +12,10 @@ module tt_um_tic_tac_toe (
     input  wire [2:0] operation,
     input  wire       ena,      // always 1 when the design is powered, so you can ignore it
     input  wire       clk,      // clock
-    input  wire       rst_n     // reset_n - low to reset
+    input  wire       rst_n,     // reset_n - low to reset
+    input wire [0:7] uio
+    input wire [0:7] ui
+    output wire [0:7] uo
 );
 
     //wire [8:0] add_out; // Adjust bit-width to match your signals
