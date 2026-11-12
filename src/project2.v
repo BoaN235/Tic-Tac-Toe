@@ -20,12 +20,16 @@ module tt_um_tic_tac_toe (
     output wire [7:0] uio_oe   // IOs: Enable path (active high: 0=input, 1=output)
 );
 
+reg [7:0] result;
+
     always @(*) begin
         case (uio_in[1:0])
-            2'b00: uo_out = ui_in[4:0] + ui_in[7:5];
-            2'b01: uo_out = ui_in[4:0] - ui_in[7:5];
+            2'b00: result = ui_in[3:0] + ui_in[7:4];
+            2'b01: result = ui_in[3:0] - ui_in[7:4];
         endcase
     end
+
+assign uo_out = result
   // List all unused inputs to prevent warnings
   assign uio_out = 8'b00000000;
   assign uio_oe  = 8'b00000000;
