@@ -6,10 +6,6 @@
 `default_nettype none
 
 module tt_um_tic_tac_toe (
-    //input  wire [7:0] a_in,   // Dedicated inputs
-    //input  wire [7:0] b_in,
-    //output wire [8:0] out,   // Dedicated outputs
-    //input  wire [2:0] operation,
     input  wire       ena,      // always 1 when the design is powered, so you can ignore it
     input  wire       clk,      // clock
     input  wire       rst_n,    // reset_n - low to reset
@@ -23,12 +19,13 @@ module tt_um_tic_tac_toe (
  // List all unused inputs to prevent warnings
 assign uio_out = 8'b00000000;
 assign uio_oe  = 8'b00000000;
-wire _unused = &{ena, rst_n, uio_in[7:2], 1'b0};
+wire _unused = &{ena, uio_in, 1'b0};
 
-wire command [7:0]
+wire command [7:0];
 
 program_block block (clk, reset, 1'b1, ui_in, 1'b1, command);
 
+assign uo_out = command
 
 endmodule
 
@@ -46,35 +43,31 @@ assign output_data = out_data; // assigning the output data
 reg executing = 0; // current execution time
 reg working_mem [15:0]; // current values being edited
 reg numbers [23:0];
-reg executing_cmd [3:0] // cmd being executed
+reg executing_cmd [3:0]; // cmd being executed
+reg [7:0] selector = 15;
 
-cmd_read read (clk, reset, executing_cmd, working_mem, executing, address, output_bool);
-cmd_save save (clk, reset, executing_cmd, working_mem, executing, data_out, address, output_bool);
+cmd_read read (clk, reset, selector, address, output_bool, read_write);
+cmd_save save (clk, reset, selector, working_mem, data_out, address, output_bool, read_write);
+cmd_write write (clk, reset, selector, address, output_bool, read_write);
+cmd_add add (clk, reset, selector);
+cmd_sub subtract (clk, reset, selector);
+cmd_mul multiply (clk, reset, selector);
+cmd_div divide (clk, reset, selector);
+
 
 always @(command) begin
-    if (executing == 0) begin
-        working_mem = 16'b0000000000000000
-        executing_cmd = command
-        case (command) // amount of time it takes for each cmd to execute 1 should be last step
-            4'b0000:   executing = 0; // 0000 End
-            4'b0001:   executing = 2; // 0001 Read (output Num at address)
-            4'b0010:   executing = 2; // 0010 Save (Save -> at address)
-            4'b0011:   executing = 4; // 0011 Add (Num at address + Num at address ->)
-            4'b0100:   executing = 4; // 0100 Subtract (Num at address - Num at address ->)
-            4'b0101:   executing = 4; // 0101 Multiply (Num at address * Num at address ->)
-            4'b0110:   executing = 4; // 0110 Divide (Num at address / Num at address ->)
-            4'b0111:   executing = 3; // 0111 Write (Save Num x at address)
-            default: executing = 0 executing_cmd = 0; // 0000 End
+    if (selector = 15) begin
+        case (command [3:0])
+            4'b0000:   selector = 0; // 0000 End x
+            4'b0001:   selector = 1; // 0001 Read (output Num at address) Done
+            4'b0010:   selector = 2; // 0010 Save (Save -> at address) Done
+            4'b0011:   selector = 3; // 0011 Add (Num at address + Num at address ->) x
+            4'b0100:   selector = 4; // 0100 Subtract (Num at address - Num at address ->) x
+            4'b0101:   selector = 5; // 0101 Multiply (Num at address * Num at address ->) x
+            4'b0110:   selector = 6; // 0110 Divide (Num at address / Num at address ->) x
+            4'b0111:   selector = 7; // 0111 Write (Save Num x at address) Done
+            default: selector = 0;  // 0000 End
         endcase
-    end else begin
-        case (executing)
-        0: working_mem = working_mem
-        1: working_mem = {command, working_mem [15:4]}
-        2: working_mem = {working_mem [3:0] command, working_mem [15:8]}
-        3: working_mem = {working_mem [7:0] command, working_mem [15:12]}
-        4: working_mem = {working_mem [11:0] command}
-        endcase
-        executing = executing - 1;
     end
 end
 
@@ -84,56 +77,81 @@ number_ram ram1 (
     .data_in(incoming_data),
     .data_out(output_bool ? data_out : output_data),
     .cs(data_valid | read_enable),
-    .ws(1'b1)
+    .ws(read_write)
 );
 
 
 
 endmodule
 
-module cmd_read (input clk, input reset, input command, input working_mem, input executing_cmd, output output_address, output output_bool)
+module cmd_read (input clk, input reset, input command, input executing_cmd, output output_address, output output_bool, output read_write)
 
-reg output_addr_reg
+reg [3:0] output_addr_reg;
+reg output_bool_reg;
+reg read_write_reg;
 
-always @(command) begin
-    if (executing_cmd == 1 & executing = 1) begin
-        output_addr_reg = working_mem [0:3] 
+always @(posedge clk) begin
+    if (selector == 0) begin
+        output_addr_reg <= command[7:4];
+        output_bool <= 1'b1;
+        read_write <= 1'b1;
     end
 end
 
-assign output_address = output_addr_reg
-assign output_bool = 1
+assign output_address = output_addr_reg;
+assign output_bool = output_bool_reg;
+assign read_write = read_write_reg;
+
+
 
 endmodule
 
-module cmd_save (input clk, input reset, input command, input working_mem, input executing_cmd, saved_data, output save_address, output output_bool, output save_data)
+module cmd_save (input clk, input reset, input command, input working_mem, input executing_cmd, saved_data, output save_address, output output_bool, output save_data, output read_write)
 
-reg save_addr_reg
-reg save_data_reg
+reg save_addr_reg;
+reg save_data_reg;
+reg output_bool_reg;
+reg read_write_reg;
 
-always @(saved_data) begin
-    case (executing)
-
-    endcase
+always @(posedge clk) begin
+    if (selector == 1) begin
+        save_addr_reg <= command [7:4];
+        save_data_reg <= working_mem [7:0];
+        output_bool <= 1'b0;
+        read_write <= 1'b1;
+    end;
 end
 
-always @(command) begin
-    if (executing_cmd == 2 & executing = 1) begin
-        save_addr_reg = working_mem [0:3] 
-        save_data_reg = working_mem [4:11] 
-    end
+assign save_data = save_data_reg;
+assign save_address = save_addr_reg;
+assign output_bool = output_bool_reg;
+assign read_write = read_write_reg;
+
+
+endmodule
+
+module cmd_write (input clk, input reset, input command, input executing_cmd, saved_data, output save_address, output output_bool, output save_data, output read_write)
+
+reg save_addr_reg;
+reg save_data_reg;
+reg output_bool_reg;
+reg read_write_reg;
+
+always @(posedge clk) begin
+    if (selector == 1) begin
+        save_addr_reg <= command [7:4];
+        save_data_reg <= command [15:8];
+        output_bool <= 1'b0;
+        read_write <= 1'b0;
+    end;
 end
 
-assign save_data = save_data_reg 
-assign save_address = save_addr_reg
-assign output_bool = 0
+assign save_data = save_data_reg;
+assign save_address = save_addr_reg;
+assign output_bool = output_bool_reg;
+assign read_write = read_write_reg;
 
 endmodule
-
-module cmd_write (input clk, input reset, input command, )
-
-endmodule
-
 
 module program_block(
     input clk,
@@ -148,33 +166,35 @@ module program_block(
 )
 
 reg we = 1'b1;
-reg download = 1'b1
+reg download = 1'b1;
 
-wire [7:0] read_address
+wire [7:0] read_address;
 
 // clock counter
 reg [7:0] write_address;
 always @(posedge clk) begin
-    if (reset & download) begin
+    if (reset) begin
             write_address <= 0;
             we = 1'b1; // set write
     end
     else if (data_valid) begin
         write_address <= write_address + 1;
-    end
+    end 
+    
+    if (write_address >= 15) begin
+    download = 1'b0;
+end
 end
 
-if (write_address >= 255) begin
-    download = 1'b0
-end
 
-reg [7:0] program_counter = 225;
+
+reg [7:0] program_counter = 15;
 always @(posedge clk) begin
-    if (!download & program_counter >= 255) begin
+    if (!download & program_counter >= 15) begin
             program_counter <= 0;
-            we = 1'b0 // set read
+            we = 1'b0; // set read
     end
-    else if (data_valid) begin
+    else if (data_valid) begin 
         program_counter <= program_counter + 1;
     end
 end
@@ -227,9 +247,9 @@ endmodule
 
 
 module program_ram
-  # (parameter ADDR_WIDTH = 8,
-     parameter DATA_WIDTH = 4,
-     parameter DEPTH = 32               // Number of words; normally 2**ADDR_WIDTH
+  # (parameter ADDR_WIDTH = 4,
+     parameter DATA_WIDTH = 16,
+     parameter DEPTH = 16               // Number of words; normally 2**ADDR_WIDTH
     )
 
   ( 	input 					clk,
