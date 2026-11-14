@@ -49,23 +49,29 @@ reg [7:0] selector = 15;
 cmd_read read (clk, reset, selector, address, output_bool, read_write);
 cmd_save save (clk, reset, selector, working_mem, data_out, address, output_bool, read_write);
 cmd_write write (clk, reset, selector, address, output_bool, read_write);
-cmd_add add (clk, reset, selector);
-cmd_sub subtract (clk, reset, selector);
-cmd_mul multiply (clk, reset, selector);
-cmd_div divide (clk, reset, selector);
-
+cmd_math Math (clk, reset, selector, command, working_mem);
+cmd_logic Logic (clk, reset, selector, command, working_mem);
 
 always @(command) begin
-    if (selector = 15) begin
-        case (command [3:0])
+    if (selector = 0) begin // I split it up so its easier to read and understand each cmd
+        case (command [3:0])  // -> = return value to working memory when cmd ends
             4'b0000:   selector = 0; // 0000 End x
-            4'b0001:   selector = 1; // 0001 Read (output Num at address) Done
-            4'b0010:   selector = 2; // 0010 Save (Save -> at address) Done
-            4'b0011:   selector = 3; // 0011 Add (Num at address + Num at address ->) x
-            4'b0100:   selector = 4; // 0100 Subtract (Num at address - Num at address ->) x
-            4'b0101:   selector = 5; // 0101 Multiply (Num at address * Num at address ->) x
-            4'b0110:   selector = 6; // 0110 Divide (Num at address / Num at address ->) x
-            4'b0111:   selector = 7; // 0111 Write (Save Num x at address) Done
+                                // [ DATA TRANSFER - saving or reading data ]
+            4'b0001:   selector = 1;  // 0001 Read (output Num at address) Done
+            4'b0010:   selector = 2;  // 0010 Save (Save -> at address) Done
+            4'b0011:   selector = 3;  // 0011 Write (Save Num x at address) Done
+            4'b0100:   selector = 4;  // 0100 Move (Move value @ address x to address y) x
+                                // [ ALU - Math & Logic ]
+            4'b0101:   selector = 5;  // 0101 Math (See Math Instructions) x
+            4'b0111:   selector = 6;  // 1001 Logic () x
+            4'b1001:   selector = 9; // 1010 Or () x
+            4'b1010:   selector = 10; // 1011 invert () x
+            4'b1011:   selector = 11; // 1100 left/right shift () x
+                                // [ Control FLow - Functions & Conditionals ]
+            4'b1100:   selector = 12;  // 1100 If () x
+            4'b1101:   selector = 13;  // 1100 Return () x
+            4'b1110:   selector = 14;  // 1100 Jump () x
+            4'b1111:   selector = 14;  // 1100 Wait () x
             default: selector = 0;  // 0000 End
         endcase
     end
@@ -153,6 +159,35 @@ assign read_write = read_write_reg;
 
 endmodule
 
+module cmd_math (input clk, input reset, input selector, input command, output working_mem)
+
+wire [8:0] added;
+wire [8:0] subtracted;
+wire [8:0] multiplied;
+wire [8:0] divided;
+
+cmd_add add (clk, reset, added);
+cmd_sub subtract (clk, reset, subtracted);
+cmd_mul multiply (clk, reset, multiplied);
+cmd_div divide (clk, reset, divided);
+
+reg [8:0] product;
+
+always @(*) begin
+    if (selector = 5) begin
+        case (command [5:4]) 
+            2'b00: product = added;
+            2'b01: product = subtracted;
+            2'b10: product = multiplied;
+            2'b11: product = divided;
+        endcase
+    end
+end
+
+assign working_mem = product
+
+endmodule
+
 module program_block(
     input clk,
     input reset,
@@ -213,9 +248,9 @@ endmodule
 
 
 module number_ram
-  # (parameter ADDR_WIDTH = 4,
-     parameter DATA_WIDTH = 8,
-     parameter DEPTH = 16               // Number of words; normally 2**ADDR_WIDTH
+  # (parameter ADDR_WIDTH = 7,
+     parameter DATA_WIDTH = 9,
+     parameter DEPTH = 128               // Number of words; normally 2**ADDR_WIDTH
     )
 
   ( 	input 					clk,
@@ -247,9 +282,9 @@ endmodule
 
 
 module program_ram
-  # (parameter ADDR_WIDTH = 4,
-     parameter DATA_WIDTH = 16,
-     parameter DEPTH = 16               // Number of words; normally 2**ADDR_WIDTH
+  # (parameter ADDR_WIDTH = 8,
+     parameter DATA_WIDTH = 24,
+     parameter DEPTH = 256               // Number of words; normally 2**ADDR_WIDTH
     )
 
   ( 	input 					clk,

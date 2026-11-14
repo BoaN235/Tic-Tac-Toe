@@ -5,11 +5,7 @@
 
 `default_nettype none
 
-module tt_um_tic_tac_toe (
-    //input  wire [7:0] a_in,   // Dedicated inputs
-    //input  wire [7:0] b_in,
-    //output wire [8:0] out,   // Dedicated outputs
-    //input  wire [2:0] operation,
+module tt_um_cpu_top (
     input  wire       ena,      // always 1 when the design is powered, so you can ignore it
     input  wire       clk,      // clock
     input  wire       rst_n,    // reset_n - low to reset
@@ -20,21 +16,15 @@ module tt_um_tic_tac_toe (
     output wire [7:0] uio_oe   // IOs: Enable path (active high: 0=input, 1=output)
 );
 
-reg [7:0] result;
-
-always @(*) begin
-    case (uio_in[1:0])
-        2'b00: result = ui_in[3:0] + ui_in[7:4];
-        2'b01: result = ui_in[3:0] - ui_in[7:4];
-        default: result = 8'b00000000;
-    endcase
-end
-
-assign uo_out = result;
-
  // List all unused inputs to prevent warnings
 assign uio_out = 8'b00000000;
 assign uio_oe  = 8'b00000000;
-wire _unused = &{ena, clk, rst_n, uio_in[7:2], 1'b0};
+wire _unused = &{ena, uio_in, 1'b0};
+
+wire command [7:0];
+
+program_block block (clk, reset, 1'b1, ui_in, 1'b1, command);
+
+assign uo_out = command
 
 endmodule
